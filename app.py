@@ -4,17 +4,40 @@ import numpy as np
 import pickle
 import plotly.express as px
 import plotly.graph_objects as go
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import MinMaxScaler
+import requests
+import os
+
+MODEL_PATH = "modelo.pkl"
+MODEL_DIR = os.path.dirname(MODEL_PATH)
+HF_URL = "https://huggingface.co/jmcajigas/Music_Genre_Model/resolve/main/modelo.pkl"
 
 
-
-
-model = pickle.load(open(r'C:\UAO\Aprendizaje Automático\modelo.pkl', 'rb'))
-scaler = pickle.load(open(r'C:\UAO\Aprendizaje Automático\escalado.pkl', 'rb'))
-st.set_page_config(page_title="Predicción Género Musical", layout="wide", page_icon=r'C:\UAO\Aprendizaje Automático\icons\Spotify_icon.png')
+st.set_page_config(page_title="Predicción Género Musical", layout="wide", page_icon=r'icons\Spotify_icon.png')
 st.title("APP Predicción Género Musical")
-data = pd.read_csv(r'C:\UAO\Aprendizaje Automático\data\train.csv')
+
+# Descargar si no existe
+if not os.path.exists(MODEL_PATH):
+    st.info("📦 Descargando modelo desde Hugging Face...")
+
+    response = requests.get(HF_URL)
+    response.raise_for_status()
+
+    # Verifica que no se haya descargado HTML por error
+    if response.content[:1] == b"<":
+        st.error("⚠️ Se ha descargado una página HTML en lugar del archivo del modelo. Verifica la URL o los permisos del archivo en Hugging Face.")
+        st.stop()
+
+    with open(MODEL_PATH, "wb") as f:
+        f.write(response.content)
+
+    st.success("✅ Modelo descargado correctamente.")
+
+# Cargar modelo
+with open(MODEL_PATH, "rb") as f:
+    model = pickle.load(f)
+scaler = pickle.load(open(r'escalado.pkl', 'rb'))
+
+data = pd.read_csv(r'data\train.csv')
 
 st.write("""
 ## Esta aplicación predice el género musical de una canción basada en sus características.
