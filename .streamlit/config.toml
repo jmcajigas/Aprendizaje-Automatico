@@ -1,0 +1,7 @@
+[theme]
+base="dark"
+primaryColor="#1DB954"       # verde Spotify
+backgroundColor="#191414"    # fondo oscuro
+secondaryBackgroundColor="#121212"
+textColor="#FFFFFF"
+font="sans serif"
