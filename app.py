@@ -7,37 +7,40 @@ import plotly.graph_objects as go
 import requests
 import os
 
-MODEL_PATH = "modelo.pkl"
-MODEL_DIR = os.path.dirname(MODEL_PATH)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+MODEL_PATH = os.path.join(BASE_DIR, "modelo.pkl")
+SCALER_PATH = os.path.join(BASE_DIR, "escalado.pkl")
+DATA_PATH = os.path.join(BASE_DIR, "data", "train.csv")
+ICON_PATH = os.path.join(BASE_DIR, "icons", "Spotify_icon.png")
+
 HF_URL = "https://huggingface.co/jmcajigas/Music_Genre_Model/resolve/main/modelo.pkl"
 
-
-st.set_page_config(page_title="Predicción Género Musical", layout="wide", page_icon=r'icons\Spotify_icon.png')
+st.set_page_config(page_title="Predicción Género Musical", layout="wide", page_icon=ICON_PATH)
 st.title("APP Predicción Género Musical")
 
-# Descargar si no existe
+# --- DESCARGAR MODELO SI NO EXISTE ---
 if not os.path.exists(MODEL_PATH):
     st.info("📦 Descargando modelo desde Hugging Face...")
-
     response = requests.get(HF_URL)
     response.raise_for_status()
 
-    # Verifica que no se haya descargado HTML por error
     if response.content[:1] == b"<":
-        st.error("⚠️ Se ha descargado una página HTML en lugar del archivo del modelo. Verifica la URL o los permisos del archivo en Hugging Face.")
+        st.error("⚠️ Descarga fallida: archivo HTML recibido.")
         st.stop()
 
     with open(MODEL_PATH, "wb") as f:
         f.write(response.content)
-
     st.success("✅ Modelo descargado correctamente.")
 
-# Cargar modelo
+# --- CARGAR MODELO Y DATOS ---
 with open(MODEL_PATH, "rb") as f:
     model = pickle.load(f)
-scaler = pickle.load(open(r'escalado.pkl', 'rb'))
 
-data = pd.read_csv(r'data\train.csv')
+with open(SCALER_PATH, "rb") as f:
+    scaler = pickle.load(f)
+
+data = pd.read_csv(DATA_PATH)
 
 st.write("""
 ## Esta aplicación predice el género musical de una canción basada en sus características.
